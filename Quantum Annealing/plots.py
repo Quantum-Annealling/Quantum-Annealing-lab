@@ -8,3 +8,7 @@ def plot(spins, gamma, sizeOfMatrix, T):
     plt.title("moduł magnetyzacji")
     
     plt.show()
+
+def plotMagHis(magnetizationHistory):
+    plt.plot(magnetizationHistory)
+    plt.show()
