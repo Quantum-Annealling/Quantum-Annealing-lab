@@ -90,14 +90,16 @@ def simulationGammaRange(NT, snapNT, spins, J, N, M, beta, gamma, Nsteps):
         gammaHistory.append(ar)
     return np.array(gammaHistory)
 
-def simulationAnnealing(NT, snapNT, spins, J, N, M, beta, gamma, T0, Tsteps):
+def simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T0, Tsteps):
     #initialization for first simulation
     spins = spinsInit(N,M)
+    
     #keeping track of magnetization
     globals.magnetizationInit()
     globals.magnetizationHistoryInit()
     globals.magnetization = spins.sum()
     
+    #calculating the decreas factor of temperature
     decreasFactor = (0.05/T0)**(1/Tsteps)
     
     #Array of slowly decreasing temperatures 
@@ -107,36 +109,7 @@ def simulationAnnealing(NT, snapNT, spins, J, N, M, beta, gamma, T0, Tsteps):
     
     #Annealing
     for t in iterationArray:
+        beta = 1/t/kB
         simulation(NT, snapNT, spins, J, N, M, beta, gamma)
     plots.plot(spins, gamma, 1, 1)
         
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
-
-
-
-
-
