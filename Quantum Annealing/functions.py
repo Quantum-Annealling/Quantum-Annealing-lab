@@ -111,5 +111,5 @@ def simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T0, Tsteps):
     for t in iterationArray:
         beta = 1/t/kB
         simulation(NT, snapNT, spins, J, N, M, beta, gamma)
-    plots.plot(spins, gamma, 1, 1)
+        plots.plot(spins, gamma, 1, 1)
         
