@@ -2,12 +2,13 @@
 import math
 import numpy as np
 import globals
-#calculates the energy of the spin before the spin flip 
+import plots
+#calculates the energy of the spin before the spin flip (nearest neighbour) 
 def energyBeforeNN(spins, i, k, J, N, M, beta, gamma):
     energy = -spins[ i, k]*(J[ i, i - 1]*spins[i-1, k] + J[ i, (i + 1)%N] * spins[ (i+1)%N, k])/M - 0.5/beta * math.log(1.0/math.tanh(beta*gamma/M)) * spins[i,k]*(spins[i, k-1] + spins[i, (k+1)%M])
     return energy
  
-#calculates the energy of the spin after the spin flip 
+#calculates the energy of the spin after the spin flip (nearest neighbour) 
 def energyAfterNN(spins, i, k, J, N, M, beta, gamma):
     energy = +spins[ i, k]*(J[ i, i - 1]*spins[i-1, k] + J[ i, (i + 1)%N] * 
                        spins[ (i+1)%N, k])/M + 0.5/beta * math.log(1.0/math.tanh(beta*gamma/M)) * spins[i,k]*(spins[i, k-1] + spins[i, (k+1)%M])
@@ -23,8 +24,9 @@ def flipSpin(spins, J, N, M, beta, gamma):
     
     #energyBefore = energyBeforeNN(spins, i, k, J, N, M, beta, gamma)
     energyAfter  = energyAfterNN(spins, i, k, J, N, M, beta, gamma)
+    #energyAfter = energyArbitraryJ(spins, i, k, J, N, M, beta, gamma)
     
-    deltaEnergy =  2* energyAfter #- energyBefore
+    deltaEnergy =  2 * energyAfter #- energyBefore
         
     
     #Metropolis algorithm
@@ -59,14 +61,78 @@ def simulation(NT, snapNT, spins, J, N, M, beta, gamma):
         flipSpin(spins,J,N,M,beta,gamma)
         if x % snapNT  == 0:
             globals.magnetizationHistory.append(globals.magnetization)
+
+#calculates the average magnetiation of the system (averaging over the second half of the symylation) 
+def avrMag(MagnetizationHistory, N, M):
+    integral = 0
+    for x in MagnetizationHistory[len(MagnetizationHistory)//2 : -1]:
+        integral += x
+    return integral/(N*M)/(len(MagnetizationHistory)//2)
+    
+#calculates the energy of the spin before the spin flip (works for a arbitrary matrix J_ij)
+def energyArbitraryJ(spins, i, k, J, N, M, beta, gamma):
+    temp = J[i,:]*spins[:,k]
+    temp2 = temp.sum()
+    energy = +spins[ i, k]*temp2/M + 0.5/beta * math.log(1.0/math.tanh(beta*gamma/M)) * spins[i,k]*(spins[i, k-1] + spins[i, (k+1)%M])
+    return energy
+
+def simulationGammaRange(NT, snapNT, spins, J, N, M, beta, gamma, Nsteps):
+    gammaRange = np.linspace(0.01, gamma, Nsteps)
+    gammaHistory = []
+    for g in gammaRange:
+        spins = spinsInit(N,M)
+        J =     JInit(N)
+        globals.magnetizationInit()
+        globals.magnetizationHistoryInit()
+        globals.magnetization = spins.sum()
+        simulation(NT, snapNT, spins, J, N, M, beta, g)
+        ar = np.array([g, abs(avrMag(globals.magnetizationHistory,N,M))])
+        gammaHistory.append(ar)
+    return np.array(gammaHistory)
+
+def simulationAnnealing(NT, snapNT, spins, J, N, M, beta, gamma, T0, Tsteps):
+    #initialization for first simulation
+    spins = spinsInit(N,M)
+    #keeping track of magnetization
+    globals.magnetizationInit()
+    globals.magnetizationHistoryInit()
+    globals.magnetization = spins.sum()
+    
+    decreasFactor = (0.05/T0)**(1/Tsteps)
+    
+    #Array of slowly decreasing temperatures 
+    iterationArray = np.zeros(Tsteps)
+    for i in range(len(iterationArray)):
+        iterationArray[i] = T0 * decreasFactor**i
+    
+    #Annealing
+    for t in iterationArray:
+        simulation(NT, snapNT, spins, J, N, M, beta, gamma)
+    plots.plot(spins, gamma, 1, 1)
+        
     
     
     
-
-
-
-
-
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 
 
 

@@ -11,4 +11,11 @@ def plot(spins, gamma, sizeOfMatrix, T):
 
 def plotMagHis(magnetizationHistory):
     plt.plot(magnetizationHistory)
+    plt.ylabel('magnetization')
+    plt.show()
+    
+def plotGammaHis(gammaHistory):
+    plt.plot(gammaHistory[:,0], gammaHistory[:,1])
+    plt.ylabel('|Average magnetization|')
+    plt.xlabel('gamma')
     plt.show()
