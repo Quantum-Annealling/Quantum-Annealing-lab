@@ -112,4 +112,34 @@ def simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T0, Tsteps):
         beta = 1/t/kB
         simulation(NT, snapNT, spins, J, N, M, beta, gamma)
         plots.plot(spins, gamma, 1, 1)
-        
+
+def simulationGammaRangeAnnealing(NT, snapNT, spins, J, N, M, kB, gammaMin, gammaMax, Nsteps, TMin, Tsteps, TMax, TIter):
+    gammaRange = np.linspace(gammaMin, gammaMax, Nsteps)
+    decreaseFactor = (0.05/TMin)**(1/Tsteps)
+    iterationArray = np.zeros(Tsteps)   
+    for i in range(len(iterationArray)):
+        iterationArray[i] = TMin * decreaseFactor**(len(iterationArray)-i)    
+    #print(iterationArray)
+    grid = np.zeros((Nsteps, Nsteps), dtype=np.float)
+    dT = (TMax-TMin)/TIter
+    T = 0
+    for g in range(len(gammaRange)):
+        print("Gamma:", g, ", ", gammaRange[g])
+        spins = spinsInit(N,M)
+        J = JInit(N)
+        globals.magnetizationInit()
+        globals.magnetizationHistoryInit()
+        globals.magnetization = spins.sum()
+        #Annealing
+        for T in range(TIter):
+            #print("T0: ", TMin + T*dT)
+            for t in iterationArray:
+                beta = 1/t/kB
+                simulation(NT, snapNT, spins, J, N, M, beta, gammaRange[g])
+            grid[g,T] = abs(avrMag(globals.magnetizationHistory,N,M) )
+            for t in iterationArray: 
+                t += dT 
+    #print(grid)
+    return grid
+
+

@@ -13,17 +13,17 @@ import globals
 import numpy as np
 
 #constants and simulation parameters 
-T=          2.0 #termodynamic temperature 
+T=          0.001 #termodynamic temperature 
 gamma =     0.8 #transverse field strenght factor
 kB =        1.0 #Boltzman constant
 J =         1.0 #interaction constant
 beta =      1.0/kB/T 
-N =         20 #N spinów kwantowych
-M =         20 #additional dimension of spins
-NT =        100000 #liczba kroków czasowych, w których losowany jest jeden spin
+N =         10 #N spinów kwantowych
+M =         10 #additional dimension of spins
+NT =        10000#liczba kroków czasowych, w których losowany jest jeden spin
 snapNT =    NT/1000 #a value of magnetization is saved every 1000 steps of the simulation
-Gsteps =    20 #number of evaluation points of gamma for the |<s>| = f(gamma) plot
-Tsteps =    40 #number of times temperature is decreased during annealing
+Gsteps =    10 #number of evaluation points of gamma for the |<s>| = f(gamma) plot
+Tsteps =    10 #number of times temperature is decreased during annealing
 
 #initialization for first simulation
 spins = fun.spinsInit(N,M)
@@ -46,20 +46,23 @@ plots.plotMagHis(np.array(globals.magnetizationHistory)/(M*N))
 print("magnetization", abs(globals.magnetization/(M*N)))
 print("Avrage magnetization: ", fun.avrMag(globals.magnetizationHistory,N,M))
 
-
-
 #simulation with decreasing gamma value, temperature is held constant
 #gammaHistory = fun.simulationGammaRange(NT, snapNT, spins, J, N, M, beta, gamma, Gsteps)
 #plots.plotGammaHis(gammaHistory)
 
-
-
 #simulation of annealing (temperature varies, gamma is kept constant)
-fun.simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T, Tsteps)
+#fun.simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T, Tsteps)
 
+gammaMin = 0.1
+gammaMax = 2
+TMin = 0.01
+TMax = 0.5
+TIter = 10
+
+ar = fun.simulationGammaRangeAnnealing(NT, snapNT, spins, J, N, M, kB, gammaMin, gammaMax, Gsteps, TMin, Tsteps, TMax, TIter)
+plots.plotGrid(ar, gammaMin, gammaMax, TMin, TMax)
 
 end = time.time();
-
 
 print("time elapsed: ",end - start)
 

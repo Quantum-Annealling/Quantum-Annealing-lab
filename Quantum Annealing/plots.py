@@ -19,3 +19,13 @@ def plotGammaHis(gammaHistory):
     plt.ylabel('|Average magnetization|')
     plt.xlabel('gamma')
     plt.show()
+    
+def plotGrid(array, gammaMin, gammaMax, TMin, TMax):
+    fig, ax = plt.subplots()
+    cax = ax.imshow(array, cmap='Greys', interpolation='none', origin='lower', extent=[gammaMin,gammaMax,TMin,TMax])
+    plt.title("moduł magnetyzacji")
+    plt.xlabel("T")
+    plt.ylabel("Gamma")
+    fig.colorbar(cax)
+    plt.show()
+    
