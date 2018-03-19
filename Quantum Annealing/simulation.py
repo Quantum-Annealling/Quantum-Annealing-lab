@@ -18,9 +18,9 @@ gamma =     0.8 #transverse field strenght factor
 kB =        1.0 #Boltzman constant
 J =         1.0 #interaction constant
 beta =      1.0/kB/T 
-N =         10 #N spinów kwantowych
-M =         10 #additional dimension of spins
-NT =        10000#liczba kroków czasowych, w których losowany jest jeden spin
+N =         20 #N spinów kwantowych
+M =         20 #additional dimension of spins
+NT =        100000#liczba kroków czasowych, w których losowany jest jeden spin
 snapNT =    NT/1000 #a value of magnetization is saved every 1000 steps of the simulation
 Gsteps =    10 #number of evaluation points of gamma for the |<s>| = f(gamma) plot
 Tsteps =    10 #number of times temperature is decreased during annealing
