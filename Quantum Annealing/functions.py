@@ -113,14 +113,13 @@ def simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T0, Tsteps):
         simulation(NT, snapNT, spins, J, N, M, beta, gamma)
         plots.plot(spins, gamma, 1, 1)
 
-def simulationGammaRangeAnnealing(NT, snapNT, spins, J, N, M, kB, gammaMin, gammaMax, Nsteps, TMin, Tsteps, TMax, TIter):
-    gammaRange = np.linspace(gammaMin, gammaMax, Nsteps)
+def simulationGammaRangeAnnealing(NT, snapNT, spins, J, N, M, kB, gammaMin, gammaMax, Gsteps, TMin, Tsteps, TMax, TIter):
+    gammaRange = np.linspace(gammaMin, gammaMax, Gsteps)
     decreaseFactor = (0.05/TMin)**(1/Tsteps)
     iterationArray = np.zeros(Tsteps)   
     for i in range(len(iterationArray)):
         iterationArray[i] = TMin * decreaseFactor**(len(iterationArray)-i)    
-    #print(iterationArray)
-    grid = np.zeros((Nsteps, Nsteps), dtype=np.float)
+    grid = np.zeros((TIter, Gsteps), dtype=np.float32)
     dT = (TMax-TMin)/TIter
     T = 0
     for g in range(len(gammaRange)):
@@ -130,16 +129,14 @@ def simulationGammaRangeAnnealing(NT, snapNT, spins, J, N, M, kB, gammaMin, gamm
         globals.magnetizationInit()
         globals.magnetizationHistoryInit()
         globals.magnetization = spins.sum()
-        #Annealing
+        #Annealing: every step finishes at higher temperature, T_i = T_(i-1) + dT 
         for T in range(TIter):
-            #print("T0: ", TMin + T*dT)
             for t in iterationArray:
                 beta = 1/t/kB
                 simulation(NT, snapNT, spins, J, N, M, beta, gammaRange[g])
-            grid[g,T] = abs(avrMag(globals.magnetizationHistory,N,M) )
+            grid[T,g] = abs(avrMag(globals.magnetizationHistory,N,M) )
             for t in iterationArray: 
                 t += dT 
-    #print(grid)
     return grid
 
 

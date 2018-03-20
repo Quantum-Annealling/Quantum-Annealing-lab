@@ -22,7 +22,7 @@ def plotGammaHis(gammaHistory):
     
 def plotGrid(array, gammaMin, gammaMax, TMin, TMax):
     fig, ax = plt.subplots()
-    cax = ax.imshow(array, cmap='Greys', interpolation='none', origin='lower', extent=[gammaMin,gammaMax,TMin,TMax])
+    cax = ax.imshow(array, cmap='Greys', interpolation='none', origin='lower', extent=[TMin,TMax,gammaMin,gammaMax])
     plt.title("moduł magnetyzacji")
     plt.xlabel("T")
     plt.ylabel("Gamma")
