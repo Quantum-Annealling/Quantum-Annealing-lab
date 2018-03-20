@@ -22,7 +22,7 @@ N =         20 #N spinów kwantowych
 M =         20 #additional dimension of spins
 NT =        100000#liczba kroków czasowych, w których losowany jest jeden spin
 snapNT =    NT/1000 #a value of magnetization is saved every 1000 steps of the simulation
-Gsteps =    10 #number of evaluation points of gamma for the |<s>| = f(gamma) plot
+Gsteps =    50 #number of evaluation points of gamma for the |<s>| = f(gamma) plot
 Tsteps =    10 #number of times temperature is decreased during annealing
 
 #initialization for first simulation
@@ -53,8 +53,8 @@ print("Avrage magnetization: ", fun.avrMag(globals.magnetizationHistory,N,M))
 #simulation of annealing (temperature varies, gamma is kept constant)
 #fun.simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T, Tsteps)
 
-gammaMin = 0.1
-gammaMax = 2
+gammaMin = 0.01
+gammaMax = 1.7
 TMin = 0.01
 TMax = 0.5
 TIter = 10
@@ -69,4 +69,4 @@ print("time elapsed: ",end - start)
 
 
 
-
+    
