@@ -13,17 +13,17 @@ import globals
 import numpy as np
 
 #constants and simulation parameters 
-T=          2.0 #termodynamic temperature 
-gamma =     0.8 #transverse field strenght factor
+T=          0.1 #thermodynamical temperature 
+gamma =     1.8 #transverse field strenght factor
 kB =        1.0 #Boltzman constant
 J =         1.0 #interaction constant
 beta =      1.0/kB/T 
-N =         20 #N spinów kwantowych
-M =         20 #additional dimension of spins
+N =         16 #N quantum spins
+M =         16 #additional dimension of spins
 NT =        100000 #liczba kroków czasowych, w których losowany jest jeden spin
 snapNT =    NT/1000 #a value of magnetization is saved every 1000 steps of the simulation
 Gsteps =    20 #number of evaluation points of gamma for the |<s>| = f(gamma) plot
-Tsteps =    40 #number of times temperature is decreased during annealing
+Tsteps =    30 #number of times temperature is decreased during annealing
 
 #initialization for first simulation
 spins = fun.spinsInit(N,M)
@@ -49,13 +49,13 @@ print("Avrage magnetization: ", fun.avrMag(globals.magnetizationHistory,N,M))
 
 
 #simulation with decreasing gamma value, temperature is held constant
-#gammaHistory = fun.simulationGammaRange(NT, snapNT, spins, J, N, M, beta, gamma, Gsteps)
-#plots.plotGammaHis(gammaHistory)
+gammaHistory = fun.simulationGammaRange(NT, snapNT, spins, J, N, M, beta, gamma, Gsteps)
+plots.plotGammaHis(gammaHistory)
 
 
 
 #simulation of annealing (temperature varies, gamma is kept constant)
-fun.simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T, Tsteps)
+#fun.simulationAnnealing(NT, snapNT, spins, J, N, M, kB, gamma, T, Tsteps)
 
 
 end = time.time();

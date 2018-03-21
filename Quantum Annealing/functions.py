@@ -70,6 +70,7 @@ def avrMag(MagnetizationHistory, N, M):
     return integral/(N*M)/(len(MagnetizationHistory)//2)
     
 #calculates the energy of the spin before the spin flip (works for a arbitrary matrix J_ij)
+    """can not figure out what is wrong"""
 def energyArbitraryJ(spins, i, k, J, N, M, beta, gamma):
     temp = J[i,:]*spins[:,k]
     temp2 = temp.sum()
