@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <stdlib.h>
 #include <math.h>
 #include <time.h>
@@ -6,6 +6,8 @@
 #include <fstream>
 #include <cstring>
 using namespace std;
+
+static const double fraction = 1.0 / (RAND_MAX + 1.0);
 
 void printMatrix(vector<vector<double> > matrix){
     for (int i=0; i<matrix.size(); i++){
@@ -23,7 +25,13 @@ void printMatrix(vector<vector<int> > matrix){
         cout << endl;
     }
 }
-
+int matrixSum(vector<vector<int> > matrix){
+    int sum = 0;
+    for (int i=0; i<matrix.size(); i++)
+        for (int j=0; j<matrix[i].size(); j++)
+           sum += matrix[i][j];
+    return sum;
+}
 void writeVector(vector<double> vect, string file){
     ofstream ofile;
     int n = file.length(); 
@@ -36,20 +44,16 @@ void writeVector(vector<double> vect, string file){
 }
 int getRandomInt(int min, int max){ 
     //max is exclusive
-	static const double fraction = 1.0 / (RAND_MAX + 1.0);
     return min + static_cast<int>((max - min) * (rand() * fraction));
 }
 double getUniform(){
-	static const double fraction = 1.0 / (RAND_MAX + 1.0);
     return rand() * fraction;
 }
-
 double energyAfterNN(vector<vector<int> > &spins, int i, int k, vector<vector<double> > &J, int N, int M, double beta, double gamma){
     double energy = spins[i][k]*(J[i][i-1]*spins[i-1][k] + J[i][(i + 1)%N]*spins[(i+1)%N][k])/M;
     energy += 0.5/beta*log(1.0/tanh(beta*gamma/M))*spins[i][k]*(spins[i][k-1] + spins[i][(k+1)%M]);
     return energy;
 }
-
 void flipSpin(vector<vector<int> > &spins, vector<vector<double> > &J, int N, int M, double beta, double gamma, double &magnetization){
     //choose random spin on NxM grid
     int i = getRandomInt(0,N);
@@ -65,7 +69,7 @@ void flipSpin(vector<vector<int> > &spins, vector<vector<double> > &J, int N, in
     }
     else{
         if(getUniform() < exp(-1.0*deltaEnergy*beta)){
-            spins[i][k]  = spins[i][k]*-1;
+            spins[i][k]  = spins[i][k]* -1;
             //keeping track of magnetization
             magnetization = magnetization + 2 * spins[i][k];
         }
@@ -79,7 +83,6 @@ vector<vector<int> > spinsInit(int N, int M){
                 spins[i][j] = getRandomInt(0,2)*2-1;
     return spins;
 }
-
 vector<vector<double> > JInit(int N){
     vector<vector<double> > J(N, vector<double>(N));
     for (int i=0; i<N; i++){
@@ -88,45 +91,59 @@ vector<vector<double> > JInit(int N){
     }
     return J;
 } 
-void simulation(int NT, int snapNT,vector<vector<int> > &spins, vector<vector<double> > &J, int N, int M, double beta, double gamma, double &magnetization, vector<double> &magnetizationHistory){
-    for(int x = 0; x < NT; x++){
+double avrMag(vector<double> MagnetizationHistory, int N, int M){
+    double integral = 0;
+    for(int i = 0; i < MagnetizationHistory.size()/2; i++)
+        integral += MagnetizationHistory[ MagnetizationHistory.size()/2 + i - 1];
+    return integral/(MagnetizationHistory.size()/2);
+}
+void simulation(int NT, float snapNT, vector<vector<int> > &spins, vector<vector<double> > &J, int N, int M, double beta, double gamma, double &magnetization, vector<double> &magnetizationHistory){
+    for(int i = 0; i < NT; i++){
         flipSpin(spins,J,N,M,beta,gamma,magnetization);
-        if(x % snapNT  == 0){
-            magnetizationHistory.push_back(magnetization/N/M);
+        magnetization = matrixSum(spins);
+        if(fmod(i,snapNT) == 0){
+            magnetizationHistory.push_back(magnetization/(N*M));
         }
     }
 }
-//calculates the average magnetiation of the system (averaging over the second half of the symylation) 
-/*
-double avrMag(list_t MagnetizationHistory, N, M){
-    double integral = 0;
-    for x in MagnetizationHistory[len(MagnetizationHistory)//2 : -1]:
-        integral += x
-    return integral/(N*M)/(len(MagnetizationHistory)//2)
+void simulationGammaRange(int NT, float snapNT, vector<vector<int> > &spins, vector<vector<double> > &J, int N, int M, double beta, double gamma, int Nsteps, double &magnetization, vector<double> &magnetizationHistory, vector<double> &gammaHistory, vector<double> &magnetizationGammaHistory){
+    for(int i = 0; i < Nsteps; i++){
+        spins = spinsInit(N,M);
+        J = JInit(N);
+        magnetization = matrixSum(spins);
+        gammaHistory.push_back((i+1)*gamma/Nsteps);
+        cout << "Gamma = " << gammaHistory[i] << endl;
+        simulation(NT,snapNT,spins,J,N,M,beta,gammaHistory[i],magnetization,magnetizationHistory);  
+        magnetizationGammaHistory.push_back(avrMag(magnetizationHistory,N,M));
+        cout << (float)(i+1)/Nsteps*100 << "% done" << endl;
+    } 
 }
-*/
-
 int main(int nargs, const char* argv[]){
     srand(time(NULL));
-    //constants and simulation parameters 
-    double T=          0.001; //termodynamic temperature 
-    double gamma =     0.8; //transverse field strenght factor
+//constants and simulation parameters 
+    double T= 0.001; //termodynamic temperature 
+    double gamma = 0.8; //transverse field strenght factor
     double kB = 1.0; //Boltzman constant
     double beta = 1.0/kB/T;  
-    int N = 20; //N spinów kwantowych
-    int M = 20; //additional dimension of spins
-    int NT = 100000; //liczba kroków czasowych, w których losowany jest jeden spin
-    double snapNT = NT/1000; //a value of magnetization is saved every 1000 steps of the simulation
-    int Gsteps = 50; //number of evaluation points of gamma for the |<s>| = f(gamma) plot
+    int N = 32; //N spinów kwantowych
+    int M = 32; //additional dimension of spins
+    int NT = 100000000; //liczba kroków czasowych, w których losowany jest jeden spin
+    float snapNT = (float)(NT/1000); //a value of magnetization is saved every 1000 steps of the simulation
+    int Gsteps = 5; //number of evaluation points of gamma for the |<s>| = f(gamma) plot
     int Tsteps = 10; //number of times temperature is decreased during annealing
+   
     //initialization for first simulation
     vector<double> magnetizationHistory;
     double magnetization = 0;
     vector<vector<int> > spins = spinsInit(N,M);
     vector<vector<double> > J = JInit(N);
-    simulation(NT,snapNT,spins,J,N,M,beta,gamma,magnetization,magnetizationHistory);
-    //for(int i = 0; i < magnetizationHistory.size(); i++)
-    //    cout << magnetizationHistory[i] << endl;
+    vector<double> magnetizationGammaHistory;
+    vector<double> gammaHistory;
+    simulationGammaRange(NT, snapNT, spins, J, N, M, beta, gamma, Gsteps, magnetization, magnetizationHistory, gammaHistory, magnetizationGammaHistory);
+    //simulation(NT,snapNT,spins,J,N,M,beta,gamma,magnetization,magnetizationHistory);
     writeVector(magnetizationHistory,"outputMagnetizationHistory.dat");
+    writeVector(gammaHistory,"outputGammaHistory.dat");
+    writeVector(magnetizationGammaHistory,"outputMagnetizationGammaHistory.dat");
+    
     return 0;
 }
